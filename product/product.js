@@ -1,31 +1,21 @@
 const express = require('express');
 const router = express.Router();
 
-// In-memory database for products
 let products = {};
-let currentProductId = 1; // Start product ID at 1
+let currentProductId = 1; 
 
-// Create a new product
 router.post('/', (req, res) => {
   const { name, price } = req.body;
-
-  // Assign an incremental ID
   const id = currentProductId++;
-  
-  // Create a new product object and store it
   products[id] = { id, name, price };
-  
-  // Send the newly created product in the response
   res.status(201).send(products[id]);
 });
 
-// Get all products
 router.get('/', (req, res) => {
-  const allProducts = Object.values(products); // Convert products object to an array
+  const allProducts = Object.values(products);
   res.status(200).send(allProducts);
 });
 
-// Get product by ID
 router.get('/:productId', (req, res) => {
   const productId = parseInt(req.params.productId, 10);
   const product = products[productId];
@@ -37,7 +27,6 @@ router.get('/:productId', (req, res) => {
   }
 });
 
-// Update product
 router.put('/:productId', (req, res) => {
   const productId = parseInt(req.params.productId, 10);
   const { name, price } = req.body;
@@ -50,7 +39,6 @@ router.put('/:productId', (req, res) => {
   }
 });
 
-// Delete product
 router.delete('/:productId', (req, res) => {
   const productId = parseInt(req.params.productId, 10);
 

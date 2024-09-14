@@ -3,12 +3,10 @@ const axios = require('axios');
 const app = express();
 app.use(express.json());
 
-// Base URLs for services
 const productServiceURL = 'http://localhost:3001/products';
 const customerServiceURL = 'http://localhost:3002/customers';
 const orderServiceURL = 'http://localhost:3003/orders';
 
-// Product routes
 app.post('/products', async (req, res) => {
   try {
     const response = await axios.post(`${productServiceURL}`, req.body);
@@ -59,7 +57,6 @@ app.delete('/products/:productId', async (req, res) => {
   }
 });
 
-// Customer routes
 app.post('/customers', async (req, res) => {
   try {
     const response = await axios.post(`${customerServiceURL}`, req.body);
@@ -110,8 +107,6 @@ app.delete('/customers/:customerId', async (req, res) => {
   }
 });
 
-
-// Start the main gateway server
 app.listen(3000, () => {
   console.log('Gateway service running on port 3000');
 });

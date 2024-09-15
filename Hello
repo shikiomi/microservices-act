@@ -12,9 +12,9 @@ customers
 ---PRODUCT---
 prducts
 {
-  "productId": 1,
-  "customerId": 1,
-  "quantity": 2
+  "name": "Laptop",
+  "price": 1200,
+  "category": "Electronics"
 }
 
 

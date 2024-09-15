@@ -1,1 +1,29 @@
 Hello
+
+Sample of how to put data
+
+---Customer---
+customers
+{
+  "name": "John Doe",
+  "email": "johndoe@example.com"
+}
+
+---PRODUCT---
+prducts
+{
+  "productId": 1,
+  "customerId": 1,
+  "quantity": 2
+}
+
+
+---ORDER---
+orders
+{
+  "productId": 1,
+  "customerId": 1,
+  "quantity": 2
+}
+
+

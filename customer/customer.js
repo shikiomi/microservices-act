@@ -52,10 +52,16 @@ router.delete('/:customerId', (req, res) => {
 
   if (customers[customerId]) {
     delete customers[customerId];
-    res.status(204).send();
+    res.status(200).send(`Customer with ID ${customerId} has been deleted.`);
   } else {
     res.status(404).send({ error: 'Customer not found' });
   }
+});
+
+router.delete('/', (req, res) => {
+  customers = {}; 
+  currentCustomerId = 1; 
+  res.status(200).send('All customers have been deleted.');
 });
 
 module.exports = router;

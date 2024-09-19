@@ -44,10 +44,16 @@ router.delete('/:productId', (req, res) => {
 
   if (products[productId]) {
     delete products[productId];
-    res.status(204).send();
+    res.status(200).send(`Product with ID ${productId} has been deleted.`);
   } else {
     res.status(404).send({ error: 'Product not found' });
   }
+});
+
+router.delete('/', (req, res) => {
+  products = {};
+  currentProductId = 1; 
+  res.status(200).send('All products have been deleted.');
 });
 
 module.exports = router;

@@ -49,11 +49,19 @@ app.put('/products/:productId', async (req, res) => {
 
 app.delete('/products/:productId', async (req, res) => {
   try {
-    await axios.delete(`${productServiceURL}/${req.params.productId}`);
-    res.status(204).send();
+    const response = await axios.delete(`${productServiceURL}/${req.params.productId}`);
+    res.status(200).send(response.data); 
   } catch (error) {
-    console.error(error);
-    res.status(error.response?.status || 500).send(error.response?.data || { error: 'An unexpected error occurred' });
+    res.status(error.response?.status || 500).send(error.response?.data || 'Internal Server Error');
+  }
+});
+
+app.delete('/products', async (req, res) => {
+  try {
+    const response = await axios.delete(`${productServiceURL}`);
+    res.status(200).send(response.data); 
+  } catch (error) {
+    res.status(error.response?.status || 500).send(error.response?.data || 'Internal Server Error');
   }
 });
 
@@ -99,11 +107,64 @@ app.put('/customers/:customerId', async (req, res) => {
 
 app.delete('/customers/:customerId', async (req, res) => {
   try {
-    await axios.delete(`${customerServiceURL}/${req.params.customerId}`);
-    res.status(204).send();
+    const response = await axios.delete(`${customerServiceURL}/${req.params.customerId}`);
+    res.status(200).send(response.data); 
   } catch (error) {
-    console.error(error);
-    res.status(error.response?.status || 500).send(error.response?.data || { error: 'An unexpected error occurred' });
+    res.status(error.response?.status || 500).send(error.response?.data || 'Internal Server Error');
+  }
+});
+
+app.delete('/customers', async (req, res) => {
+  try {
+    const response = await axios.delete(`${customerServiceURL}`);
+    res.status(200).send(response.data); 
+  } catch (error) {
+    res.status(error.response?.status || 500).send(error.response?.data || 'Internal Server Error');
+  }
+});
+
+app.post('/orders', async (req, res) => {
+  try {
+    const response = await axios.post(`${orderServiceURL}`, req.body);
+    res.status(201).send(response.data);
+  } catch (error) {
+    res.status(error.response?.status || 500).send(error.response?.data || 'Error occurred');
+  }
+});
+
+app.get('/orders/:orderId', async (req, res) => {
+  try {
+    const response = await axios.get(`${orderServiceURL}/${req.params.orderId}`);
+    res.send(response.data);
+  } catch (error) {
+    res.status(error.response?.status || 500).send(error.response?.data || 'Error occurred');
+  }
+});
+
+app.get('/orders', async (req, res) => {
+  try {
+    const response = await axios.get(`${orderServiceURL}`);
+    res.send(response.data);
+  } catch (error) {
+    res.status(error.response?.status || 500).send(error.response?.data || 'Error occurred');
+  }
+});
+
+app.delete('/orders/:orderId', async (req, res) => {
+  try {
+    const response = await axios.delete(`${orderServiceURL}/${req.params.orderId}`);
+    res.status(200).send(response.data); 
+  } catch (error) {
+    res.status(error.response?.status || 500).send(error.response?.data || 'Internal Server Error');
+  }
+});
+
+app.delete('/orders', async (req, res) => {
+  try {
+    const response = await axios.delete(`${orderServiceURL}`);
+    res.status(200).send(response.data); 
+  } catch (error) {
+    res.status(error.response?.status || 500).send(error.response?.data || 'Internal Server Error');
   }
 });
 

@@ -10,7 +10,7 @@ customers
 }
 
 ---PRODUCT---
-prducts
+products
 {
   "name": "Laptop",
   "price": 1200,

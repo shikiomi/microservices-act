@@ -80,12 +80,20 @@ router.get('/', (req, res) => {
 
 
 router.delete('/:orderId', (req, res) => {
-  const order = orders[req.params.orderId];
-  if (order) {
-    delete orders[req.params.orderId];
-    res.status(204).send();
+  const orderId = parseInt(req.params.orderId, 10);
+
+  if (orders[orderId]) {
+    delete orders[orderId];
+    res.status(200).send(`Order with ID ${orderId} has been deleted.`);
+  } else {
     res.status(404).send({ error: 'Order not found' });
   }
+});
+
+router.delete('/', (req, res) => {
+  orders = {}; // Clear all orders
+  currentOrderId = 1; // Reset order ID counter
+  res.status(200).send('All orders have been deleted.');
 });
 
 module.exports = router;

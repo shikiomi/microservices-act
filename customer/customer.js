@@ -1,23 +1,82 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const router = express.Router();
+const limiter = require('./rateLimiter'); 
 
+const secretKey = 'yourSecretKey'; 
 let customers = {};
-let currentCustomerId = 1; 
+let currentCustomerId = 1;
 
 
-router.post('/', (req, res) => {
-  const { name, email } = req.body;
+router.use(limiter);
 
+
+async function hashPassword(password) {
+  return await bcrypt.hash(password, 10);
+}
+
+
+async function comparePassword(password, hash) {
+  return await bcrypt.compare(password, hash);
+}
+
+
+function generateToken(customer) {
+  const payload = {
+    id: customer.id,
+    email: customer.email,
+  };
+  return jwt.sign(payload, secretKey, { expiresIn: '1h' });
+}
+
+
+router.post('/register', async (req, res) => {
+  const { name, email, password } = req.body;
+
+  
+  const existingCustomer = Object.values(customers).find(
+    (customer) => customer.email === email
+  );
+  if (existingCustomer) {
+    return res.status(400).send({ error: 'Email already exists' });
+  }
+
+  
+  const hashedPassword = await hashPassword(password);
   const id = currentCustomerId++;
+  customers[id] = { id, name, email, password: hashedPassword };
+
+  res.status(201).send({ message: 'Registration successful', id });
+});
+
+
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
   
-  customers[id] = { id, name, email };
+  const customer = Object.values(customers).find(
+    (customer) => customer.email === email
+  );
+
+  if (!customer) {
+    return res.status(400).send({ error: 'Invalid email or password' });
+  }
+
   
-  res.status(201).send(customers[id]);
+  const isValid = await comparePassword(password, customer.password);
+  if (!isValid) {
+    return res.status(400).send({ error: 'Invalid email or password' });
+  }
+
+  
+  const token = generateToken(customer);
+  res.status(200).send({ message: 'Login successful', token });
 });
 
 
 router.get('/', (req, res) => {
-  const allCustomers = Object.values(customers); 
+  const allCustomers = Object.values(customers);
   res.status(200).send(allCustomers);
 });
 
@@ -25,7 +84,7 @@ router.get('/', (req, res) => {
 router.get('/:customerId', (req, res) => {
   const customerId = parseInt(req.params.customerId, 10);
   const customer = customers[customerId];
-  
+
   if (customer) {
     res.status(200).send(customer);
   } else {
@@ -57,6 +116,7 @@ router.delete('/:customerId', (req, res) => {
     res.status(404).send({ error: 'Customer not found' });
   }
 });
+
 
 router.delete('/', (req, res) => {
   customers = {}; 

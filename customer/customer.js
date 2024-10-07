@@ -2,25 +2,22 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const router = express.Router();
-const limiter = require('./rateLimiter'); 
+const limiter = require('../rateLimiter');
+const authenticateToken = require('../auth'); 
 
 const secretKey = 'yourSecretKey'; 
 let customers = {};
 let currentCustomerId = 1;
 
-
 router.use(limiter);
-
 
 async function hashPassword(password) {
   return await bcrypt.hash(password, 10);
 }
 
-
 async function comparePassword(password, hash) {
   return await bcrypt.compare(password, hash);
 }
-
 
 function generateToken(customer) {
   const payload = {
@@ -33,16 +30,14 @@ function generateToken(customer) {
 
 router.post('/register', async (req, res) => {
   const { name, email, password } = req.body;
-
-  
   const existingCustomer = Object.values(customers).find(
     (customer) => customer.email === email
   );
+
   if (existingCustomer) {
     return res.status(400).send({ error: 'Email already exists' });
   }
 
-  
   const hashedPassword = await hashPassword(password);
   const id = currentCustomerId++;
   customers[id] = { id, name, email, password: hashedPassword };
@@ -54,7 +49,6 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
-  
   const customer = Object.values(customers).find(
     (customer) => customer.email === email
   );
@@ -63,25 +57,23 @@ router.post('/login', async (req, res) => {
     return res.status(400).send({ error: 'Invalid email or password' });
   }
 
-  
   const isValid = await comparePassword(password, customer.password);
   if (!isValid) {
     return res.status(400).send({ error: 'Invalid email or password' });
   }
 
-  
   const token = generateToken(customer);
   res.status(200).send({ message: 'Login successful', token });
 });
 
 
-router.get('/', (req, res) => {
+router.get('/', authenticateToken, (req, res) => {
   const allCustomers = Object.values(customers);
   res.status(200).send(allCustomers);
 });
 
 
-router.get('/:customerId', (req, res) => {
+router.get('/:customerId', authenticateToken, (req, res) => {
   const customerId = parseInt(req.params.customerId, 10);
   const customer = customers[customerId];
 
@@ -93,7 +85,7 @@ router.get('/:customerId', (req, res) => {
 });
 
 
-router.put('/:customerId', (req, res) => {
+router.put('/:customerId', authenticateToken, (req, res) => {
   const customerId = parseInt(req.params.customerId, 10);
   const { name, email } = req.body;
 
@@ -106,7 +98,7 @@ router.put('/:customerId', (req, res) => {
 });
 
 
-router.delete('/:customerId', (req, res) => {
+router.delete('/:customerId', authenticateToken, (req, res) => {
   const customerId = parseInt(req.params.customerId, 10);
 
   if (customers[customerId]) {
@@ -118,9 +110,9 @@ router.delete('/:customerId', (req, res) => {
 });
 
 
-router.delete('/', (req, res) => {
-  customers = {}; 
-  currentCustomerId = 1; 
+router.delete('/', authenticateToken, (req, res) => {
+  customers = {};
+  currentCustomerId = 1;
   res.status(200).send('All customers have been deleted.');
 });
 

@@ -1,25 +1,36 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const router = express.Router();
+const limiter = require('../rateLimiter');
+const authenticateToken = require('../auth'); 
 
-let products = {};
-let currentProductId = 1; 
+const secretKey = 'yourSecretKey'; 
+let products = {}; 
+let currentProductId = 1;
 
-router.post('/', (req, res) => {
-  const { name, price } = req.body;
+router.use(limiter);
+
+router.post('/', authenticateToken, (req, res) => {
+  const { name, price, description, category } = req.body;
+
   const id = currentProductId++;
-  products[id] = { id, name, price };
-  res.status(201).send(products[id]);
+  products[id] = { id, name, price, description, category };
+
+  res.status(201).send({ message: 'Product created successfully', id });
 });
 
-router.get('/', (req, res) => {
+
+router.get('/', authenticateToken, (req, res) => {
   const allProducts = Object.values(products);
   res.status(200).send(allProducts);
 });
 
-router.get('/:productId', (req, res) => {
+
+router.get('/:productId', authenticateToken, (req, res) => {
   const productId = parseInt(req.params.productId, 10);
   const product = products[productId];
-  
+
   if (product) {
     res.status(200).send(product);
   } else {
@@ -27,19 +38,21 @@ router.get('/:productId', (req, res) => {
   }
 });
 
-router.put('/:productId', (req, res) => {
+
+router.put('/:productId', authenticateToken, (req, res) => {
   const productId = parseInt(req.params.productId, 10);
-  const { name, price } = req.body;
+  const { name, price, description, category } = req.body;
 
   if (products[productId]) {
-    products[productId] = { id: productId, name, price };
+    products[productId] = { id: productId, name, price, description, category };
     res.status(200).send(products[productId]);
   } else {
     res.status(404).send({ error: 'Product not found' });
   }
 });
 
-router.delete('/:productId', (req, res) => {
+
+router.delete('/:productId', authenticateToken, (req, res) => {
   const productId = parseInt(req.params.productId, 10);
 
   if (products[productId]) {
@@ -50,9 +63,10 @@ router.delete('/:productId', (req, res) => {
   }
 });
 
-router.delete('/', (req, res) => {
+
+router.delete('/', authenticateToken, (req, res) => {
   products = {};
-  currentProductId = 1; 
+  currentProductId = 1;
   res.status(200).send('All products have been deleted.');
 });
 

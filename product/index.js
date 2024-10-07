@@ -1,10 +1,12 @@
 const express = require('express');
+const productRoutes = require('./product');
 const app = express();
+const port = 3001;
+
 app.use(express.json());
 
-const productRoutes = require('./product');
 app.use('/products', productRoutes);
 
-app.listen(3001, () => {
-  console.log('Product Service running on port 3001');
+app.listen(port, () => {
+  console.log(`Product service is running on port ${port}`);
 });

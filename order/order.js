@@ -1,17 +1,22 @@
 const express = require('express');
 const axios = require('axios');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const limiter = require('../rateLimiter');
+const authenticateToken = require('../auth'); 
 
-
+const secretKey = 'yourSecretKey'; 
 let orders = {};
 let currentOrderId = 1;
 
+router.use(limiter);
 
 const productServiceURL = 'http://localhost:3001/products';
 const customerServiceURL = 'http://localhost:3002/customers';
 
 
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
   const { productId, customerId, quantity } = req.body;
 
   try {

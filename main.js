@@ -1,173 +1,253 @@
 const express = require('express');
 const axios = require('axios');
-const app = express();
-app.use(express.json());
+const cors = require('cors');
+const limiter = require('./rateLimiter'); // Ensure this path is correct
+const authenticateJWT = require('./auth'); // Import JWT authentication middleware
 
+const app = express();
+
+app.use(express.json());
+app.use(cors()); // Enable CORS if needed
+app.use(limiter); // Rate limiting middleware
+
+// Base URLs for services
 const productServiceURL = 'http://localhost:3001/products';
 const customerServiceURL = 'http://localhost:3002/customers';
 const orderServiceURL = 'http://localhost:3003/orders';
 
-app.post('/products', async (req, res) => {
+// Middleware to log incoming requests
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
+
+// Error handling function
+const handleError = (error, res) => {
+  console.error(error);
+  res.status(error.response?.status || 500).send({
+    error: error.response?.data || 'An error occurred',
+  });
+};
+
+// Product routes
+app.post('/products', authenticateJWT, async (req, res) => {
   try {
-    const response = await axios.post(`${productServiceURL}`, req.body);
+    const { authorization } = req.headers;
+    const response = await axios.post(productServiceURL, req.body, {
+      headers: {
+        Authorization: authorization,
+      },
+    });
     res.status(201).send(response.data);
   } catch (error) {
-    console.error(error);
-    res.status(error.response?.status || 500).send(error.response?.data || { error: 'An unexpected error occurred' });
+    handleError(error, res);
   }
 });
 
-app.get('/products', async (req, res) => {
+app.get('/products/:productId', authenticateJWT, async (req, res) => {
   try {
-    const response = await axios.get(`${productServiceURL}`);
+    const { authorization } = req.headers;
+    const response = await axios.get(`${productServiceURL}/${req.params.productId}`, {
+      headers: {
+        Authorization: authorization,
+      },
+    });
     res.send(response.data);
   } catch (error) {
-    console.error(error);
-    res.status(error.response?.status || 500).send(error.response?.data || { error: 'An unexpected error occurred' });
+    handleError(error, res);
   }
 });
 
-app.get('/products/:productId', async (req, res) => {
+app.get('/products', authenticateJWT, async (req, res) => {
   try {
-    const response = await axios.get(`${productServiceURL}/${req.params.productId}`);
+    const { authorization } = req.headers;
+    const response = await axios.get(productServiceURL, {
+      headers: {
+        Authorization: authorization,
+      },
+    });
     res.send(response.data);
   } catch (error) {
-    console.error(error);
-    res.status(error.response?.status || 500).send(error.response?.data || { error: 'An unexpected error occurred' });
+    handleError(error, res);
   }
 });
 
-app.put('/products/:productId', async (req, res) => {
+app.delete('/products/:productId', authenticateJWT, async (req, res) => {
   try {
-    const response = await axios.put(`${productServiceURL}/${req.params.productId}`, req.body);
-    res.send(response.data);
+    const { authorization } = req.headers;
+    const response = await axios.delete(`${productServiceURL}/${req.params.productId}`, {
+      headers: {
+        Authorization: authorization,
+      },
+    });
+    res.status(200).send(response.data);
   } catch (error) {
-    console.error(error);
-    res.status(error.response?.status || 500).send(error.response?.data || { error: 'An unexpected error occurred' });
+    handleError(error, res);
   }
 });
 
-app.delete('/products/:productId', async (req, res) => {
+app.delete('/products', authenticateJWT, async (req, res) => {
   try {
-    const response = await axios.delete(`${productServiceURL}/${req.params.productId}`);
-    res.status(200).send(response.data); 
+    const { authorization } = req.headers;
+    const response = await axios.delete(productServiceURL, {
+      headers: {
+        Authorization: authorization,
+      },
+    });
+    res.status(200).send(response.data);
   } catch (error) {
-    res.status(error.response?.status || 500).send(error.response?.data || 'Internal Server Error');
+    handleError(error, res);
   }
 });
 
-app.delete('/products', async (req, res) => {
+// Customer routes
+app.post('/customers/register', async (req, res) => {
   try {
-    const response = await axios.delete(`${productServiceURL}`);
-    res.status(200).send(response.data); 
-  } catch (error) {
-    res.status(error.response?.status || 500).send(error.response?.data || 'Internal Server Error');
-  }
-});
-
-app.post('/customers', async (req, res) => {
-  try {
-    const response = await axios.post(`${customerServiceURL}`, req.body);
+    const response = await axios.post(`${customerServiceURL}/register`, req.body);
     res.status(201).send(response.data);
   } catch (error) {
-    console.error(error);
-    res.status(error.response?.status || 500).send(error.response?.data || { error: 'An unexpected error occurred' });
+    handleError(error, res);
   }
 });
 
-app.get('/customers', async (req, res) => {
+// Customer login route
+app.post('/customers/login', async (req, res) => {
   try {
-    const response = await axios.get(`${customerServiceURL}`);
+    const response = await axios.post(`${customerServiceURL}/login`, req.body);
+    res.status(200).send(response.data);
+  } catch (error) {
+    handleError(error, res);
+  }
+});
+
+app.get('/customers/:customerId', authenticateJWT, async (req, res) => {
+  try {
+    const { authorization } = req.headers;
+    const response = await axios.get(`${customerServiceURL}/${req.params.customerId}`, {
+      headers: {
+        Authorization: authorization,
+      },
+    });
     res.send(response.data);
   } catch (error) {
-    console.error(error);
-    res.status(error.response?.status || 500).send(error.response?.data || { error: 'An unexpected error occurred' });
+    handleError(error, res);
   }
 });
 
-app.get('/customers/:customerId', async (req, res) => {
+app.get('/customers', authenticateJWT, async (req, res) => {
   try {
-    const response = await axios.get(`${customerServiceURL}/${req.params.customerId}`);
+    const { authorization } = req.headers;
+    const response = await axios.get(customerServiceURL, {
+      headers: {
+        Authorization: authorization,
+      },
+    });
     res.send(response.data);
   } catch (error) {
-    console.error(error);
-    res.status(error.response?.status || 500).send(error.response?.data || { error: 'An unexpected error occurred' });
+    handleError(error, res);
   }
 });
 
-app.put('/customers/:customerId', async (req, res) => {
+app.delete('/customers/:customerId', authenticateJWT, async (req, res) => {
   try {
-    const response = await axios.put(`${customerServiceURL}/${req.params.customerId}`, req.body);
-    res.send(response.data);
+    const { authorization } = req.headers;
+    const response = await axios.delete(`${customerServiceURL}/${req.params.customerId}`, {
+      headers: {
+        Authorization: authorization,
+      },
+    });
+    res.status(200).send(response.data);
   } catch (error) {
-    console.error(error);
-    res.status(error.response?.status || 500).send(error.response?.data || { error: 'An unexpected error occurred' });
+    handleError(error, res);
   }
 });
 
-app.delete('/customers/:customerId', async (req, res) => {
+app.delete('/customers', authenticateJWT, async (req, res) => {
   try {
-    const response = await axios.delete(`${customerServiceURL}/${req.params.customerId}`);
-    res.status(200).send(response.data); 
+    const { authorization } = req.headers;
+    const response = await axios.delete(customerServiceURL, {
+      headers: {
+        Authorization: authorization,
+      },
+    });
+    res.status(200).send(response.data);
   } catch (error) {
-    res.status(error.response?.status || 500).send(error.response?.data || 'Internal Server Error');
+    handleError(error, res);
   }
 });
 
-app.delete('/customers', async (req, res) => {
+// Order routes
+app.post('/orders', authenticateJWT, async (req, res) => {
   try {
-    const response = await axios.delete(`${customerServiceURL}`);
-    res.status(200).send(response.data); 
-  } catch (error) {
-    res.status(error.response?.status || 500).send(error.response?.data || 'Internal Server Error');
-  }
-});
-
-app.post('/orders', async (req, res) => {
-  try {
-    const response = await axios.post(`${orderServiceURL}`, req.body);
+    const { authorization } = req.headers;
+    const response = await axios.post(orderServiceURL, req.body, {
+      headers: {
+        Authorization: authorization,
+      },
+    });
     res.status(201).send(response.data);
   } catch (error) {
-    res.status(error.response?.status || 500).send(error.response?.data || 'Error occurred');
+    handleError(error, res);
   }
 });
 
-app.get('/orders/:orderId', async (req, res) => {
+app.get('/orders/:orderId', authenticateJWT, async (req, res) => {
   try {
-    const response = await axios.get(`${orderServiceURL}/${req.params.orderId}`);
+    const { authorization } = req.headers;
+    const response = await axios.get(`${orderServiceURL}/${req.params.orderId}`, {
+      headers: {
+        Authorization: authorization,
+      },
+    });
     res.send(response.data);
   } catch (error) {
-    res.status(error.response?.status || 500).send(error.response?.data || 'Error occurred');
+    handleError(error, res);
   }
 });
 
-app.get('/orders', async (req, res) => {
+app.get('/orders', authenticateJWT, async (req, res) => {
   try {
-    const response = await axios.get(`${orderServiceURL}`);
+    const { authorization } = req.headers;
+    const response = await axios.get(orderServiceURL, {
+      headers: {
+        Authorization: authorization,
+      },
+    });
     res.send(response.data);
   } catch (error) {
-    res.status(error.response?.status || 500).send(error.response?.data || 'Error occurred');
+    handleError(error, res);
   }
 });
 
-app.delete('/orders/:orderId', async (req, res) => {
+app.delete('/orders/:orderId', authenticateJWT, async (req, res) => {
   try {
-    const response = await axios.delete(`${orderServiceURL}/${req.params.orderId}`);
-    res.status(200).send(response.data); 
+    const { authorization } = req.headers;
+    const response = await axios.delete(`${orderServiceURL}/${req.params.orderId}`, {
+      headers: {
+        Authorization: authorization,
+      },
+    });
+    res.status(200).send(response.data);
   } catch (error) {
-    res.status(error.response?.status || 500).send(error.response?.data || 'Internal Server Error');
+    handleError(error, res);
   }
 });
 
-app.delete('/orders', async (req, res) => {
+app.delete('/orders', authenticateJWT, async (req, res) => {
   try {
-    const response = await axios.delete(`${orderServiceURL}`);
-    res.status(200).send(response.data); 
+    const { authorization } = req.headers;
+    const response = await axios.delete(orderServiceURL, {
+      headers: {
+        Authorization: authorization,
+      },
+    });
+    res.status(200).send(response.data);
   } catch (error) {
-    res.status(error.response?.status || 500).send(error.response?.data || 'Internal Server Error');
+    handleError(error, res);
   }
 });
 
+// Start the main gateway server
 app.listen(3000, () => {
   console.log('Gateway service running on port 3000');
 });

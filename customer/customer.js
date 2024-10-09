@@ -27,7 +27,6 @@ function generateToken(customer) {
   return jwt.sign(payload, secretKey, { expiresIn: '1h' });
 }
 
-
 router.post('/register', async (req, res) => {
   const { name, email, password } = req.body;
   const existingCustomer = Object.values(customers).find(
@@ -44,7 +43,6 @@ router.post('/register', async (req, res) => {
 
   res.status(201).send({ message: 'Registration successful', id });
 });
-
 
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
@@ -66,14 +64,12 @@ router.post('/login', async (req, res) => {
   res.status(200).send({ message: 'Login successful', token });
 });
 
-
 router.get('/', authenticateToken, (req, res) => {
   const allCustomers = Object.values(customers);
   res.status(200).send(allCustomers);
 });
 
-
-router.get('/:customerId', authenticateToken, (req, res) => {
+router.get('/:customerId', (req, res) => {
   const customerId = parseInt(req.params.customerId, 10);
   const customer = customers[customerId];
 
@@ -83,7 +79,6 @@ router.get('/:customerId', authenticateToken, (req, res) => {
     res.status(404).send({ error: 'Customer not found' });
   }
 });
-
 
 router.put('/:customerId', authenticateToken, (req, res) => {
   const customerId = parseInt(req.params.customerId, 10);
@@ -97,7 +92,6 @@ router.put('/:customerId', authenticateToken, (req, res) => {
   }
 });
 
-
 router.delete('/:customerId', authenticateToken, (req, res) => {
   const customerId = parseInt(req.params.customerId, 10);
 
@@ -108,7 +102,6 @@ router.delete('/:customerId', authenticateToken, (req, res) => {
     res.status(404).send({ error: 'Customer not found' });
   }
 });
-
 
 router.delete('/', authenticateToken, (req, res) => {
   customers = {};

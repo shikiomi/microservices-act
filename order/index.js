@@ -1,11 +1,19 @@
 const express = require('express');
-const axios = require('axios');
+const orderRoutes = require('./order'); 
 const app = express();
+const port = 3003;
+
+
 app.use(express.json());
 
-const orderRoutes = require('./order');
+
 app.use('/orders', orderRoutes);
 
-app.listen(3003, () => {
-  console.log('Order Service running on port 3003');
+
+app.listen(port, (err) => {
+  if (err) {
+    console.error('Failed to start the server:', err);
+  } else {
+    console.log(`Order service is running on port ${port}`);
+  }
 });

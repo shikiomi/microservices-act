@@ -9,7 +9,12 @@ const secretKey = 'yourSecretKey';
 let products = {}; 
 let currentProductId = 1;
 
+
 router.use(limiter);
+
+
+
+
 
 router.post('/', authenticateToken, (req, res) => {
   const { name, price, description, category } = req.body;
@@ -27,7 +32,7 @@ router.get('/', authenticateToken, (req, res) => {
 });
 
 
-router.get('/:productId', authenticateToken, (req, res) => {
+router.get('/:productId', (req, res) => {
   const productId = parseInt(req.params.productId, 10);
   const product = products[productId];
 

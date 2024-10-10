@@ -3,20 +3,16 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const router = express.Router();
 const limiter = require('../rateLimiter');
-const authenticateToken = require('../auth'); 
+const { authenticateToken, authorizeRoles } = require('../auth'); 
 
-const secretKey = 'yourSecretKey'; 
+const secretKey = process.env.SECRET_KEY || 'yourSecretKey'; 
 let products = {}; 
 let currentProductId = 1;
-
 
 router.use(limiter);
 
 
-
-
-
-router.post('/', authenticateToken, (req, res) => {
+router.post('/', authenticateToken, authorizeRoles('admin'), (req, res) => {
   const { name, price, description, category } = req.body;
 
   const id = currentProductId++;
@@ -44,7 +40,7 @@ router.get('/:productId', (req, res) => {
 });
 
 
-router.put('/:productId', authenticateToken, (req, res) => {
+router.put('/:productId', authenticateToken, authorizeRoles('admin'), (req, res) => {
   const productId = parseInt(req.params.productId, 10);
   const { name, price, description, category } = req.body;
 
@@ -57,7 +53,7 @@ router.put('/:productId', authenticateToken, (req, res) => {
 });
 
 
-router.delete('/:productId', authenticateToken, (req, res) => {
+router.delete('/:productId', authenticateToken, authorizeRoles('admin'), (req, res) => {
   const productId = parseInt(req.params.productId, 10);
 
   if (products[productId]) {
@@ -69,7 +65,7 @@ router.delete('/:productId', authenticateToken, (req, res) => {
 });
 
 
-router.delete('/', authenticateToken, (req, res) => {
+router.delete('/', authenticateToken, authorizeRoles('admin'), (req, res) => {
   products = {};
   currentProductId = 1;
   res.status(200).send('All products have been deleted.');
